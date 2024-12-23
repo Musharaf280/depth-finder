@@ -11,7 +11,7 @@ HTML_TEMPLATE = """
     <title>Depth Calculator</title>
 </head>
 <body>
-    <h1>Calculate Depth</h1>
+    <h1>Calculate Depth for Tree</h1>
     <form method="POST">
         <label for="r_values">Enter diameter values (r) separated by commas:</label><br>
         <input type="text" id="r_values" name="r_values" required><br><br>
