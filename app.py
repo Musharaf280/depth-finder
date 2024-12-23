@@ -9,21 +9,15 @@ HTML_TEMPLATE = """
 <html>
 <head>
     <title>Depth Calculator</title>
-    <style>
-        .result { color: red; font-weight: bold; }
-    </style>
 </head>
 <body>
-    <h1>Calculate Depth for Forest</h1>
+    <h1>Calculate Depth for Power of Path</h1>
     <form method="POST">
-        <label for="d_values">Enter d values (comma-separated, maximum diameter):</label><br>
-        <input type="text" id="d_values" name="d_values" required><br><br>
+        <label for="n_values">Enter n values (comma-separated, n >= 2):</label><br>
+        <input type="text" id="n_values" name="n_values" required><br><br>
         
-        <label for="t_values">Enter t values (comma-separated, time parameter):</label><br>
+        <label for="t_values">Enter t values (comma-separated):</label><br>
         <input type="text" id="t_values" name="t_values" required><br><br>
-        
-        <label for="p_values">Enter p values (comma-separated, number of connected components):</label><br>
-        <input type="text" id="p_values" name="p_values" required><br><br>
         
         <button type="submit">Calculate</button>
     </form>
@@ -31,7 +25,7 @@ HTML_TEMPLATE = """
         <h2>Results:</h2>
         <ul>
             {% for result in results %}
-                <li class="result">{{ result }}</li>
+                <li>{{ result }}</li>
             {% endfor %}
         </ul>
     {% endif %}
@@ -39,41 +33,39 @@ HTML_TEMPLATE = """
 </html>
 """
 
-def compute_depth(d, t, p):
-    # Calculate the expression [(d - t + 2) / 3] for each t ≥ 1
-    depth_expression = (d - t + 2) / 3
-    # Take the ceiling of the division as the expression is rounded up
-    depth_expression_ceil = math.ceil(depth_expression)
-    
-    # Compute the depth using the given formula
-    depth = max(depth_expression_ceil + p - 1, p)
+def calculate_depth(n, t):
+    """Calculate the depth using the given formula."""
+    depth_part = math.ceil((n - t + 1) / 3)  # First part of the formula
+    depth = max(depth_part, 1)  # Ensure the depth is at least 1
     return depth
 
 @app.route('/', methods=['GET', 'POST'])
 def depth_calculator():
     results = []
     if request.method == 'POST':
-        d_values = request.form.get('d_values', '').split(',')
+        n_values = request.form.get('n_values', '').split(',')
         t_values = request.form.get('t_values', '').split(',')
-        p_values = request.form.get('p_values', '').split(',')
-        
-        # Validate input
-        if len(d_values) != len(t_values) or len(d_values) != len(p_values):
-            results.append("Error: The number of d, t, and p values must be the same!")
+
+        # Validate that the number of n and t values are the same
+        if len(n_values) != len(t_values):
+            results.append("Error: The number of n and t values must be the same!")
         else:
-            for d, t, p in zip(d_values, t_values, p_values):
+            for n, t in zip(n_values, t_values):
                 try:
-                    d = int(d.strip())  # Convert d to integer
+                    n = int(n.strip())  # Convert n to integer
                     t = int(t.strip())  # Convert t to integer
-                    p = int(p.strip())  # Convert p to integer
-                    
+
+                    if n < 2:
+                        results.append(f"Invalid n value '{n}'. It should be at least 2.")
+                        continue
+
                     # Calculate depth
-                    depth = compute_depth(d, t, p)
-                    results.append(f"d: {d}, t: {t}, p: {p} => Depth: {depth}")
+                    depth = calculate_depth(n, t)
+                    results.append(f"n: {n}, t: {t} => Depth: {depth}")
                 except ValueError:
-                    results.append(f"Invalid input for d: {d.strip()}, t: {t.strip()}, or p: {p.strip()}. Please enter only integer values.")
+                    results.append(f"Invalid input for n: {n.strip()} or t: {t.strip()}. Please enter only integer values.")
     
     return render_template_string(HTML_TEMPLATE, results=results)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=8000)
